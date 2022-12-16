@@ -1,8 +1,5 @@
-import os
-input_filepath = os.path.join(
-  os.path.dirname(__file__),
-  "input/06.txt"
-)
+from aocd.models import Puzzle
+puzzle = Puzzle(year=2022, day=6)
 
 def part_fn(streambuffer: str, marker_len: int):
   marker_groups = [
@@ -20,8 +17,7 @@ def part_fn(streambuffer: str, marker_len: int):
 
     continue
 
-with open(input_filepath, encoding = 'utf-8') as f:
-  streambuffer = f.read()
-
-  print(f"part 1: {part_fn(streambuffer, 4)}")
-  print(f"part 14: {part_fn(streambuffer, 14)}")
+def part_a():
+  return part_fn(puzzle.input_data, 4)
+def part_b():
+  return part_fn(puzzle.input_data, 14)
