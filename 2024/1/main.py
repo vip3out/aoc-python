@@ -1,10 +1,5 @@
 from modules.helper import open_and_readlines
 
-lines = open_and_readlines("1/input.txt")
-data = [tuple(line.split()) for line in lines]
-data = list(zip(*data))
-data = [tuple(map(int, l)) for l in data]
-
 def part_one(data):
   data = [tuple(sorted(l)) for l in data]
   distances = list()
@@ -19,6 +14,16 @@ def part_two(data):
     if v in data[1]:
       similarity_scores.append(v * data[1].count(v))
   return sum(similarity_scores)
+
+
+example_file_path = "1/example.txt"
+input_file_path = "1/input.txt"
+
+input = open_and_readlines(example_file_path)
+
+data = [tuple(line.split()) for line in input]
+data = list(zip(*data))
+data = [tuple(map(int, l)) for l in data]
 
 print(f"Part 1: {part_one(data)}")
 print(f"Part 2: {part_two(data)}")

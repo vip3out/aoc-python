@@ -6,13 +6,14 @@ tasks:
       CREATED_DAY_DIRS:
         sh: "ls -d */ | cut -f1 -d'/'"
       NEW_DAY_DIR: '{{splitList "\n" .CREATED_DAY_DIRS | sortAlpha | reverse | rest | sortAlpha | last | add 1}}'
+      TOKEN:
+        sh: cat .token
     cmds:
       - mkdir -p {{.NEW_DAY_DIR}}
-      # - cp main.py.stub {{.NEW_DAY_DIR}}/main.py
-      - sed 's/##day##/{{.NEW_DAY_DIR}}/g' main.py.stub > {{.NEW_DAY_DIR}}/main.py
-      - touch {{.NEW_DAY_DIR}}/README.md
+      - curl -b session={{.TOKEN}} -o {{.NEW_DAY_DIR}}/input.txt https://adventofcode.com/2024/day/{{.NEW_DAY_DIR}}/input
+      - sed 's/%day%/{{.NEW_DAY_DIR}}/g' main.py.stub > {{.NEW_DAY_DIR}}/main.py
+      - sed 's/%day%/{{.NEW_DAY_DIR}}/g' README.md.stub > {{.NEW_DAY_DIR}}/README.md
       - touch {{.NEW_DAY_DIR}}/requirements.txt
-      - touch {{.NEW_DAY_DIR}}/input.txt
       - touch {{.NEW_DAY_DIR}}/example.txt
 
   env:

@@ -18,6 +18,9 @@ def part_two(memory):
 
   return sum(products)
 
-memory = open_and_concatlines("3/input.txt")
-print(f"Part 1: {part_one(memory)}")
-print(f"Part 2: {part_two(memory)}")
+example_file_path = "3/example.txt"
+input_file_path = "3/input.txt"
+
+input = open_and_concatlines(input_file_path)
+print(f"Part 1: {part_one(input)}")
+print(f"Part 2: {part_two(input)}")

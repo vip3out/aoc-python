@@ -41,7 +41,11 @@ def part_two(rows):
 
   return len(founds)
 
-input = open_and_readlines("4/input.txt")
+example_file_path = "4/example.txt"
+input_file_path = "4/input.txt"
+
+input = open_and_readlines(input_file_path)
+
 rows = [list(line) for line in input]
 print(f"Part 1: {part_one(rows)}")
 print(f"Part 2: {part_two(rows)}")

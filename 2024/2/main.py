@@ -1,9 +1,6 @@
 import functools
 from modules.helper import open_and_readlines
 
-lines = open_and_readlines("2/input.txt")
-data = [list(map(int, report.split(" "))) for report in lines]
-
 def check_decreasing(a, b):
   return b if a is not False and b > a and abs(b - a) < 4 else False
 
@@ -50,6 +47,13 @@ def part_two(safe, checked):
   safe_reports = [r for r in checked_reports if r["safe"] == True]
   return len(safe) + len(safe_reports)
 
+
+example_file_path = "2/example.txt"
+input_file_path = "2/input.txt"
+
+input = open_and_readlines(input_file_path)
+
+data = [list(map(int, report.split(" "))) for report in input]
 checked_reports = [check_report(report) for report in data]
 safe_reports = [report for report in checked_reports if report["safe"] == True]
 print(f"Part 1: {part_one(safe_reports)}")
