@@ -6,13 +6,13 @@
 
 [Link to Calendar](https://adventofcode.com/2024)
 
-### Day 1
+### Day %day%
 
-[Link to Puzzle](https://adventofcode.com/2024/day/1)
+[Link to Puzzle](https://adventofcode.com/2024/day/%day%)
 
 #### Run the Code
 
 ```sh
 $ cd ..
-$ task run -- 1
+$ task run -- %day%
 ```
