@@ -11,181 +11,122 @@ ENDC = '\033[0m'
 BOLD = '\033[1m'
 UNDERLINE = '\033[4m'
 
-START = [0,1]
+START = (0,1)
 MOVES = [
-  [0, 1],
-  [1, 0],
-  [-1, 0],
-  [0, -1]
+  (0, 1),
+  (1, 0),
+  (-1, 0),
+  (0, -1)
 ]
 MOVE_EXPRESSION = list(">v^<")
 MOVE_NAMINGS = "rightwards, downwards, upwards, leftwards".split(", ")
 
 input_data = puzzle.input_data
 input_data_lines = input_data.splitlines()
-# input_data = """#.######
-# #>>.<^<#
-# #.<..<<#
-# #>v.><>#
-# #<^v^^>#
-# ######.#"""
-# input_data_lines = input_data.split("\n")
 input_data_matrix = [list(row) for row in input_data_lines]
 
-class Point:
-  def __init__(self, pos):
-    self._x = pos[1]
-    self._y = pos[0]
+def movingBlizzard(blizzard, wallBottomRightCorner):
+  currentY, currentX, move_expression = blizzard
+  moveY, moveX = MOVES[MOVE_EXPRESSION.index(move_expression)]
+  y, x = (currentY + moveY, currentX + moveX)
+  cornerY, cornerX = wallBottomRightCorner
 
-  @property
-  def y(self) -> int:
-    return self._y
-
-  @property
-  def x(self) -> int:
-    return self._x
-
-  @y.setter
-  def y(self, y):
-    self._y = y
-
-  @x.setter
-  def x(self, x):
-    self._x = x
-
-  def __str__(self) -> str:
-    return f"({self.y}, {self.x})"
-
-  def __iter__(self) -> list:
-   return iter([self.y, self.x])
-class Blizzard:
-  def __init__(self, v, pos):
-    self.v = v
-    self._pos = Point(pos)
-
-  @property
-  def pos(self) -> list:
-    return list(self._pos)
-
-  @property
-  def move(self) -> list:
-    return MOVES[MOVE_EXPRESSION.index(self.v)]
-
-  @property
-  def direction(self) -> list:
-    return MOVE_NAMINGS[MOVE_EXPRESSION.index(self.v)]
-
-  def moving(self, bottomRightCorner):
-    x = self._pos.x + self.move[1]
-    y = self._pos.y + self.move[0]
-
-    self._pos.x = bottomRightCorner.x - 1 if x == 0 else x if x < bottomRightCorner.x else 1
-    self._pos.y = bottomRightCorner.y - 1 if y == 0 else y if y < bottomRightCorner.y else 1
-
-  def __str__(self) -> str:
-    return f"Blizzard at ({self._pos}) moving {self.direction}"
-
+  return (
+    cornerY - 1 if y == 0 else y if y < cornerY else 1,
+    cornerX - 1 if x == 0 else x if x < cornerX else 1,
+    move_expression
+  )
 def onTarget(pos, target):
-  return True if pos.x == target.x and pos.y == target.y else False
+  y, x = pos
+  targetY, targetX = target
+  return True if x == targetX and y == targetY else False
 
-def onBounds(pos, bottomRightCorner):
-  if pos.x == 0 or pos.y == 0:
+def onBoundsOrOutsideValley(pos, wallBottomRightCorner):
+  y, x = pos
+  cornerY, cornerX = wallBottomRightCorner
+  if x <= 0 or y <= 0:
     return True
 
-  if pos.x == bottomRightCorner.x or pos.y == bottomRightCorner.y:
+  if x == cornerX or y == cornerY:
     return True
 
   return False
 
 def onAnyBlizzard(pos, blizzards):
-  return list(pos) in [blizzard.pos for blizzard in blizzards]
+  return pos in [(blizzardY, blizzardX) for blizzardY, blizzardX, _ in blizzards]
 
-def moving(pos, move):
-  return Point(
-    [pos.y + move[0], pos.x + move[1]]
-  )
+def movingElf(pos, move):
+  currentY, currentX = pos
+  moveY, moveX = move
+  return (currentY + moveY, currentX + moveX)
 
-def part_a():
-  bottomRightCorner = Point([len(input_data_matrix) -1, len(input_data_matrix[0]) - 1])
-  target = Point([len(input_data_matrix) -1, len(input_data_matrix[0]) - 2])
+def calculate_minutes(start, target, blizzards, bottomRightCorner):
+  current_positions = set()
 
-  print("part 1: \n")
-  print(input_data)
-  print(f"\nstart: {START}")
-  print(f"target: {target}", end="\n\n")
+  minute = 0
+  current_positions.add((*start, minute))
 
-  blizzards = [Blizzard(v, [row, col]) for row, col, v in sum([
+  moves = [*MOVES, (0, 0)]
+
+  while(True):
+    if minute % 100 == 0:
+      print(f"--- {minute} ---")
+    minute += 1
+    blizzards = list(map(lambda blizzard: movingBlizzard(blizzard, bottomRightCorner), blizzards))
+
+    previous_positions = [(y,x) for y,x,m in current_positions if m ==  minute - 1]
+
+    for current in previous_positions:
+      possibles = [movingElf(current, move) for move in moves]
+
+      if target in possibles:
+        return (minute, blizzards)
+
+      valid_positions = [possible for possible in possibles if (current == possible and possible == start) or (onBoundsOrOutsideValley(possible, bottomRightCorner) == False and onAnyBlizzard(possible, blizzards) == False)]
+
+      for valid_position in valid_positions:
+        current_positions.add((*valid_position, minute))
+
+
+def part_a(returningBlizzards = False):
+  bottomRightCorner = (len(input_data_matrix) -1, len(input_data_matrix[0]) - 1)
+  target = (len(input_data_matrix) -1, len(input_data_matrix[0]) - 2)
+
+  blizzards = [(row, col, v) for row, col, v in sum([
       [[row, col, v] for col,v in enumerate(cols)]
       for row, cols in enumerate(input_data_matrix)
     ], []) if v in MOVE_EXPRESSION]
 
-  current = Point(START)
-  offset = 0
-  stopped = False
+  print("part 1: \n")
+  print(f"\nstart: {START}")
+  print(f"target: {target}", end="\n\n")
 
-  moves = [*MOVES, [0, 0]]
-  move_names = [*MOVE_NAMINGS, "waiting"]
+  result = calculate_minutes(START, target, blizzards, bottomRightCorner)
+  print(f"away path takes: {result[0]}", end="\n\n")
 
-  while(stopped is False):
-    _ = list(map(lambda blizzard: blizzard.moving(bottomRightCorner), blizzards))
-    print(f"{OKBLUE}check {current}{ENDC}")
-    for mIdx, move in enumerate(moves):
-      possible_pos = moving(current, move)
-      print(f"{HEADER}is {move_names[mIdx]}: {possible_pos} possible?{ENDC}")
 
-      if onBounds(possible_pos, bottomRightCorner) and onTarget(possible_pos, target) == False:
-        print(f"{FAIL}NO!{ENDC} - \ton bounds", end="\n\n")
-        continue
+  if returningBlizzards:
+    return result
 
-      if onAnyBlizzard(possible_pos, blizzards):
-        print(f"{FAIL}NO!{ENDC} - \tis there where one blizzard is see #blizzards", end="\n\n")
-        continue
-
-      print(f"{OKGREEN}move {move_names[mIdx]}[{mIdx}] {move}{ENDC} to {possible_pos}\ton offset {offset+1}", end="\n\n")
-      current = possible_pos
-      break
-    stopped = True if onTarget(current, target) else False
-    offset += 1
-
-  print(f"\ncurrent offset: {OKGREEN}{offset}{ENDC}")
-  return offset
-
+  return result[0]
 
 def part_b():
-  print("part 2")
-  print(puzzle.input_data.splitlines())
+  away_minutes, blizzards = part_a(True)
 
+  bottomRightCorner = (len(input_data_matrix) -1, len(input_data_matrix[0]) - 1)
+  start = (len(input_data_matrix) -1, len(input_data_matrix[0]) - 2)
+  target = START
 
-# test = [0,0]
-# blizzards = [Blizzard(v, [row, col]) for row, col, v in sum([
-#     [[row, col, v] for col,v in enumerate(cols)]
-#     for row, cols in enumerate(input_data_matrix)
-#   ], []) if v in MOVE_EXPRESSION]
+  print("part 2: \n")
+  print(f"\nstart: {start}")
+  print(f"target: {target}", end="\n\n")
 
-# print(f"\n\n{HEADER}show blizzard points:\n{[blizzard.pos for blizzard in blizzards]}{ENDC}")
-# _ = list(map(lambda blizzard: blizzard.moving(Point([5,7])), blizzards))
+  wayback_minutes, blizzards = calculate_minutes(start, target, blizzards, bottomRightCorner)
+  print(f"way back path takes: {wayback_minutes}", end="\n\n")
 
-# print(f"\n\n{HEADER}show blizzard points:\n{[blizzard.pos for blizzard in blizzards]}{ENDC}")
-# print(test in blizzards, blizzards)
+  print(f"\nstart: {target}")
+  print(f"target: {start}", end="\n\n")
+  away2_minutes, _ = calculate_minutes(target, start, blizzards, bottomRightCorner)
+  print(f"away path again takes: {away2_minutes}", end="\n\n")
 
-# stopped = False
-# l = range(100)
-# offset = 0
-# while stopped == False:
-#   for i in l:
-#     print(i)
-#     if i == 50:
-#       print("break")
-#       break
-#   offset += 1
-#   stopped = True if offset > 100 else False
-#   print(stopped, offset)
-
-visitied = set()
-
-visitied.add((0, 1))
-
-print((0, 2) in visitied)
-
-
-# print(part_a())
+  return wayback_minutes + away_minutes + away2_minutes
